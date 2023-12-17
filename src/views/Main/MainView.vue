@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ImageProcessor from '@/views/Main/ImageProcessor'
+import ImageProcessor from '@/views/Main/ImageProcessor/ImageProcessor'
 import { onBeforeMount, onBeforeUnmount, ref } from 'vue'
 
 let files: File[] | undefined
