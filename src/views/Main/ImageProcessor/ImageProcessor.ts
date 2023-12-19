@@ -5,7 +5,8 @@ import { type ImageProcessorWorkerExpose } from '@/views/Main/ImageProcessor/Ima
 import * as Comlink from 'comlink'
 import type { ImageProcessorOptions } from '@/views/Main/ImageProcessor/types'
 import { init, processImage } from '@/views/Main/ImageProcessor/ImageProcessFuncs'
-import { downloadAll } from '@/utils/download'
+import { wait } from '@/utils/schedule'
+import { saveAs } from 'file-saver'
 
 class ImageProcessor implements IDisposable {
   private isProcessing = false
@@ -21,8 +22,7 @@ class ImageProcessor implements IDisposable {
   ): Promise<void> {
     const { onProgressChange, ...restOptions } = options ?? {}
 
-    const WORKER_COUNT = 4
-    const notUseWorker = files.length < WORKER_COUNT
+    const WORKER_MAX_COUNT = 4
 
     if (this.isProcessing) {
       throw new Error('image processing')
@@ -35,35 +35,30 @@ class ImageProcessor implements IDisposable {
 
       let counter = 0
 
-      if (notUseWorker) {
-        await processImage(files, {
-          onProcessed() {
-            onProgressChange?.(++counter)
-          },
-          ...restOptions
-        })
-      } else {
-        const filesSlice: (typeof files)[] = Array.from(new Array(WORKER_COUNT), () => [])
+      const filesSlice: (typeof files)[] = Array.from(
+        new Array(Math.min(files.length, WORKER_MAX_COUNT)),
+        () => []
+      )
 
-        for (let i = 0; i < files.length; i++) {
-          filesSlice[i % WORKER_COUNT].push(files[i])
-        }
-
-        await Promise.all(
-          filesSlice.map(async (slice) => {
-            const worker = new ImageProcessorWorker()
-            const workerExpose = Comlink.wrap<ImageProcessorWorkerExpose>(worker)
-            const options = Comlink.proxy({
-              onProcessed: () => {
-                onProgressChange?.(++counter)
-              }
-            })
-
-            await (workerExpose.processImage as unknown as typeof processImage)(slice, options)
-            worker.terminate()
-          })
-        )
+      for (let i = 0; i < files.length; i++) {
+        filesSlice[i % filesSlice.length].push(files[i])
       }
+
+      await Promise.all(
+        filesSlice.map(async (slice) => {
+          const worker = new ImageProcessorWorker()
+          const workerExpose = Comlink.wrap<ImageProcessorWorkerExpose>(worker)
+          const optionsProxy = Comlink.proxy({
+            onProcessed: () => {
+              onProgressChange?.(++counter)
+            },
+            restOptions
+          })
+
+          await (workerExpose.processImage as unknown as typeof processImage)(slice, optionsProxy)
+          worker.terminate()
+        })
+      )
     } finally {
       this.isProcessing = false
     }
@@ -71,19 +66,30 @@ class ImageProcessor implements IDisposable {
 
   // if it has history, can download multiple
   downloadFiles(): void {
+    /**
+     * download files greater than 10
+     * @link https://stackoverflow.com/questions/53560991/automatic-file-downloads-limited-to-10-files-on-chrome-browser/53841885#53841885
+     */
     ;(async () => {
-      const files: File[] = []
+      const keys = await localforage.keys()
 
-      // localforage.iterate return void
-      await localforage.iterate((file) => {
-        files.push(file as File)
-      })
-
-      downloadAll(files)
+      const BATCH_COUNT = 10
+      let count = 0
+      for (const key of keys) {
+        const file = (await localforage.getItem<File>(key)) as File
+        if (count === BATCH_COUNT) {
+          await wait(1000)
+          count = 0
+        }
+        saveAs(file, file.name)
+        count++
+      }
     })()
   }
 
-  dispose(): void {}
+  dispose(): void {
+    localforage.clear()
+  }
 
   static async create(): Promise<ImageProcessor> {
     await init()

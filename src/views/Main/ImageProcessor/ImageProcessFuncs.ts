@@ -26,8 +26,8 @@ export async function processImage(
 ) {
   const { onProcessed } = options ?? {}
 
-  for (const file of files) {
-    const arrayBuffer = await file.arrayBuffer()
+  for (const originalFile of files) {
+    const arrayBuffer = await originalFile.arrayBuffer()
     const uint8Array = new Uint8Array(arrayBuffer)
 
     const magickImage: IMagickImage = await new Promise((resolve, reject) => {
@@ -53,14 +53,14 @@ export async function processImage(
       new MagickColor(255, 255, 255)
     )
 
-    const processedBlob = await new Promise<Blob>((resolve, reject) => {
+    const processedFile = await new Promise<Blob>((resolve, reject) => {
       try {
         magickImage.write(MagickFormat.Jpg, (u8Arr) => {
-          const blob = new File([u8Arr], file.name, {
-            lastModified: file.lastModified,
+          const newFile = new File([u8Arr], originalFile.name, {
+            lastModified: originalFile.lastModified,
             type: 'image/jpeg'
           })
-          resolve(blob)
+          resolve(newFile)
         })
       } catch (e) {
         reject(e)
@@ -68,7 +68,7 @@ export async function processImage(
     })
 
     const uuid = crypto.randomUUID()
-    await localforage.setItem(uuid, processedBlob)
+    await localforage.setItem(uuid, processedFile)
 
     magickImage.dispose()
 
