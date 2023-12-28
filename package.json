@@ -17,6 +17,7 @@
   "dependencies": {
     "@imagemagick/magick-wasm": "^0.0.26",
     "@types/file-saver": "^2.0.7",
+    "clsx": "^2.0.0",
     "comlink": "^4.4.1",
     "file-saver": "^2.0.5",
     "localforage": "^1.10.0",
