@@ -131,7 +131,13 @@ onBeforeUnmount(() => {
 
       <template v-if="$status === Status.READY">
         <button class="w-full max-w-sm h-12 bg-primary text-white rounded-md" @click="handleUpload">
-          <input class="hidden" type="file" multiple @change="handleFileChange" />
+          <input
+            class="hidden"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            @change="handleFileChange"
+          />
           上传文件
         </button>
       </template>
