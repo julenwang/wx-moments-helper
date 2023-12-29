@@ -48,6 +48,9 @@ export async function processImage(
     magickImage.resize(new MagickGeometry('x2262'))
     // 拉伸到宽幅，居中，添加白边
     magickImage.extent(
+      /**
+       * @link https://lenqq.cn/p/d8c79a5f.html
+       */
       new MagickGeometry('4524x2262'),
       Gravity.Center,
       new MagickColor(255, 255, 255)
