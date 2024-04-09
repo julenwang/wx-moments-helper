@@ -194,7 +194,7 @@ onBeforeUnmount(() => {
           rel="noreferrer"
           >Julenwang</a
         >
-        2023
+        2024
       </span>
       <span>
         Powered by
