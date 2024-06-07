@@ -15,7 +15,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@imagemagick/magick-wasm": "^0.0.26",
+    "@imagemagick/magick-wasm": "^0.0.29",
     "@types/file-saver": "^2.0.7",
     "clsx": "^2.0.0",
     "comlink": "^4.4.1",
