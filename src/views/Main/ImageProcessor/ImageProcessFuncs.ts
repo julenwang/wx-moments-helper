@@ -59,7 +59,8 @@ export async function processImage(
     const processedFile = await new Promise<Blob>((resolve, reject) => {
       try {
         magickImage.write(MagickFormat.Jpg, (u8Arr) => {
-          const newFile = new File([u8Arr], originalFile.name, {
+          const fileNameWithoutSuffix = originalFile.name.split('.').shift()!
+          const newFile = new File([u8Arr], fileNameWithoutSuffix, {
             lastModified: originalFile.lastModified,
             type: 'image/jpeg'
           })

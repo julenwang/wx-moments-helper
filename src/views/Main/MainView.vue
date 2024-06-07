@@ -134,7 +134,7 @@ onBeforeUnmount(() => {
           <input
             class="hidden"
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/heif"
             multiple
             @change="handleFileChange"
           />
