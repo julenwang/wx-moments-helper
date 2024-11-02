@@ -24,7 +24,7 @@ export async function processImage(
     onProcessed?: (id: string) => void
   }
 ) {
-  const { onProcessed } = options ?? {}
+  const { onProcessed, toJPGOnly } = options ?? {}
 
   for (const originalFile of files) {
     const arrayBuffer = await originalFile.arrayBuffer()
@@ -41,20 +41,22 @@ export async function processImage(
       }
     })
 
-    /**
-     * @link https://imagemagick.org/script/command-line-processing.php#geometry
-     */
-    // 等比缩小短边
-    magickImage.resize(new MagickGeometry('x2262'))
-    // 拉伸到宽幅，居中，添加白边
-    magickImage.extent(
+    if (!(await toJPGOnly)) {
       /**
-       * @link https://lenqq.cn/p/d8c79a5f.html
+       * @link https://imagemagick.org/script/command-line-processing.php#geometry
        */
-      new MagickGeometry('4524x2262'),
-      Gravity.Center,
-      new MagickColor(255, 255, 255)
-    )
+      // 等比缩小短边
+      magickImage.resize(new MagickGeometry('x2262'))
+      // 拉伸到宽幅，居中，添加白边
+      magickImage.extent(
+        /**
+         * @link https://lenqq.cn/p/d8c79a5f.html
+         */
+        new MagickGeometry('4524x2262'),
+        Gravity.Center,
+        new MagickColor(255, 255, 255)
+      )
+    }
 
     const processedFile = await new Promise<Blob>((resolve, reject) => {
       try {

@@ -1,1 +1,3 @@
-export type ImageProcessorOptions = {}
+export type ImageProcessorOptions = {
+  toJPGOnly?: boolean
+}

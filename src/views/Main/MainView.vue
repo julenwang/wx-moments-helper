@@ -19,6 +19,7 @@ const imageProcessor = ImageProcessor.create()
 const $status = ref<Status>(Status.READY)
 const $files = ref<File[]>([])
 const $processed = ref<number>(0)
+const $toJPGOnly = ref(false)
 
 type SetStatusParams =
   | [status: Status.READY]
@@ -98,6 +99,7 @@ async function handleStartProcess() {
   }, 800)
 
   processor.start($files.value, {
+    toJPGOnly: $toJPGOnly.value,
     onProgressChange(processed) {
       smoothUpdateArr.push(processed)
     }
@@ -153,15 +155,29 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="flex flex-col gap-2">
-        <button
+        <div
           v-if="$status === Status.UPLOADED || $status === Status.PROCESSING"
-          class="relative inline-flex items-center justify-center w-full max-w-sm h-12 bg-primary disabled:bg-gray-400 text-white rounded-md"
-          :disabled="$status === Status.PROCESSING"
-          @click="handleStartProcess"
+          class="flex gap-2 items-center"
         >
-          处理
-          <img v-if="$status === Status.PROCESSING" class="ml-2 h-8" :src="loadingUrl" alt="logo" />
-        </button>
+          <button
+            class="relative inline-flex items-center justify-center w-full max-w-sm h-12 bg-primary disabled:bg-gray-400 text-white rounded-md"
+            :disabled="$status === Status.PROCESSING"
+            @click="handleStartProcess"
+          >
+            处理
+            <img
+              v-if="$status === Status.PROCESSING"
+              class="ml-2 h-8"
+              :src="loadingUrl"
+              alt="logo"
+            />
+          </button>
+          <label class="ml-2">
+            <input type="checkbox" v-model="$toJPGOnly" :disabled="$status === Status.PROCESSING" />
+            to JPG only
+          </label>
+        </div>
+
         <button
           v-if="$status === Status.PROCESSED"
           class="w-full max-w-sm h-12 bg-primary text-white rounded-md"

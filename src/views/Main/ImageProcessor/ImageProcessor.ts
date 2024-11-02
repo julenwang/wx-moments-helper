@@ -52,7 +52,7 @@ class ImageProcessor implements IDisposable {
             onProcessed: () => {
               onProgressChange?.(++counter)
             },
-            restOptions
+            ...restOptions
           })
 
           await (workerExpose.processImage as unknown as typeof processImage)(slice, optionsProxy)
